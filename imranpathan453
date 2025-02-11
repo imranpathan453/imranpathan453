@@ -1,0 +1,62 @@
+import React, { useState } from "react";
+import axios from "axios";
+
+export default function EducationPlatform() {
+  const [pdf, setPdf] = useState(null);
+  const [chat, setChat] = useState([]);
+  const [message, setMessage] = useState("");
+
+  const handleFileUpload = (event) => {
+    setPdf(event.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    if (!pdf) return;
+    const formData = new FormData();
+    formData.append("file", pdf);
+    try {
+      await axios.post("/api/upload", formData);
+      alert("File uploaded successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+    }
+  };
+
+  const handleChat = async () => {
+    if (!message) return;
+    try {
+      const response = await axios.post("/api/chat", { query: message });
+      setChat([...chat, { user: message, bot: response.data.answer }]);
+      setMessage("");
+    } catch (error) {
+      console.error("Chat error:", error);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: "600px", margin: "auto", padding: "20px" }}>
+      <h1>Open Education Platform</h1>
+      <div>
+        <input type="file" onChange={handleFileUpload} />
+        <button onClick={handleUpload}>Upload PDF</button>
+      </div>
+      <div style={{ border: "1px solid #ccc", padding: "10px", marginTop: "10px" }}>
+        {chat.map((c, index) => (
+          <div key={index}>
+            <p><strong>You:</strong> {c.user}</p>
+            <p><strong>AI:</strong> {c.bot}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Ask anything..."
+        />
+        <button onClick={handleChat}>Chat</button>
+      </div>
+    </div>
+  );
+}
